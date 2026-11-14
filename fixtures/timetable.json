@@ -1,0 +1,99 @@
+{
+  "stops": [
+    {
+      "id": "A",
+      "transfer_seconds": 120
+    },
+    {
+      "id": "B",
+      "transfer_seconds": 120
+    },
+    {
+      "id": "C",
+      "transfer_seconds": 120
+    },
+    {
+      "id": "D",
+      "transfer_seconds": 120
+    }
+  ],
+  "calendars": [
+    {
+      "id": "daily",
+      "start": "2026-01-01",
+      "end": "2026-12-31",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "added": [],
+      "removed": []
+    }
+  ],
+  "trips": [
+    {
+      "id": "N1",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "A",
+          "arrival": "23:55:00",
+          "departure": "23:55:00"
+        },
+        {
+          "stop": "B",
+          "arrival": "24:05:00",
+          "departure": "24:06:00"
+        },
+        {
+          "stop": "C",
+          "arrival": "24:20:00",
+          "departure": "24:20:00"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "B",
+          "arrival": "24:08:00",
+          "departure": "24:08:00"
+        },
+        {
+          "stop": "D",
+          "arrival": "24:15:00",
+          "departure": "24:15:00"
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "A",
+          "arrival": "24:00:00",
+          "departure": "24:00:00"
+        },
+        {
+          "stop": "D",
+          "arrival": "24:30:00",
+          "departure": "24:30:00"
+        }
+      ]
+    }
+  ],
+  "query": {
+    "date": "2026-01-02",
+    "origin": "A",
+    "destination": "D",
+    "depart": "23:50:00"
+  }
+}
