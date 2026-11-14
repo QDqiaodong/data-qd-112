@@ -81,3 +81,36 @@ python3 -m venv .venv
 已知限制：`calendar.txt` 每个 `service_id` 只允许一行（v1 快照只有一个星期掩码与闭区间）；
 GTFS 中同一 trip 的 `stop_sequence` 重复、或需要额外 `frequencies.txt`/`transfers.txt`
 的场景不支持，遇到时按校验失败处理。
+
+## 站点发车供给集市（service-path-supply）
+
+把 v1 快照按自然日区间展开成 SQLite 供给集市，回答"哪天、哪个站、哪个小时有多少班车、
+最大多久没车"：
+
+```sh
+.venv/bin/service-path-supply --source fixtures/supply/timetable.json \
+    --start 2026-01-01 --end 2026-01-05 --database run/supply.sqlite
+```
+
+- 输入是 v1 快照、起止自然日期（`YYYY-MM-DD`，含首尾）与 SQLite 路径；快照里的
+  `query` 照常校验但不限制结果，日期完全由 `--start`/`--end` 决定。
+- 只有非末站 call 计为发车（末站没有后续离开）；按日历与 `added`/`removed` 例外逐服务日
+  判断启用班次，例外可在常规范围外、可跨区间。
+- `00:00:00`–`47:59:59` 的服务时刻按 `时间 // 24h` 换算自然日、按 `% 24h` 换算日内秒；
+  统计窗口的第一个自然日会纳入前一服务日跨过午夜的发车，窗口外自然日不写入。
+- 表 `departures`：`(service_day, trip_id, call_index)` 唯一，另有 `natural_day`、
+  `stop_id`、`day_seconds`（0..86399）。表 `hourly_departures`：主键
+  `(natural_day, stop_id, hour)`，每个站点每个自然日 0..23 时都有行；`departure_count`
+  为发车条数（同秒多车分别计数），`max_headway_seconds` 为该小时内去重后发车时刻与
+  两端整点边界构成的相邻间隔最大值，空小时为 3600。
+- 重跑只删除并重写 `natural_day` 落在请求区间内的分区，其他日期保持原样；事实与汇总
+  在同一事务提交。快照校验或写库失败时整体回滚，旧库不变；首次写入失败不会留下数据库
+  文件。输入数组乱序不改变逻辑结果。
+- 成功时向 stdout 打印汇总 JSON（自然日数、服务日数、站点数、发车数、汇总行数），
+  失败退出 2 并保留旧库。
+
+样例 `fixtures/supply/timetable.json` 含同秒双车、跨午夜、24:00 右边界、停运日、
+范围外新增例外与仅周末班次，全部为原创虚构数据。
+
+已知限制：只使用标准库与 SQLite；不处理实时延误、DST、步行或跨 trip 贯通车辆；
+单次区间最多 3660 个自然日、汇总最多 500 万行，也不对数据库做跨进程并发写入协调。

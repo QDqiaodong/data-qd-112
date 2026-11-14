@@ -3,3 +3,7 @@
 `fixtures/gtfs/sample/` 与 `fixtures/gtfs/query.json` 同样为本项目原创的虚构 GTFS
 样例：五个站点（含前导零 ID `007`）、三个 daily 服务 trip 与一个仅由例外定义的
 `holiday` trip，行顺序故意打乱以验证导入排序；不代表任何真实运营线路。
+
+`fixtures/supply/timetable.json` 是同一项目的原创虚构供给集市样例：两个服务日历
+（daily、weekend）、五条 trip，覆盖同秒双车并计、24:00 右边界、24:10 跨午夜、停运日、
+区间外新增例外与仅周末服务；用于验证逐日逐站逐小时的发车计数与最大间隔口径。

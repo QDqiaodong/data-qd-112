@@ -1,0 +1,151 @@
+{
+  "stops": [
+    {
+      "id": "A",
+      "transfer_seconds": 120
+    },
+    {
+      "id": "B",
+      "transfer_seconds": 120
+    },
+    {
+      "id": "C",
+      "transfer_seconds": 0
+    },
+    {
+      "id": "D",
+      "transfer_seconds": 60
+    }
+  ],
+  "calendars": [
+    {
+      "id": "daily",
+      "start": "2026-01-01",
+      "end": "2026-01-31",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "added": [],
+      "removed": [
+        "2026-01-03"
+      ]
+    },
+    {
+      "id": "weekend",
+      "start": "2026-01-01",
+      "end": "2026-01-31",
+      "weekdays": [
+        5,
+        6
+      ],
+      "added": [
+        "2026-02-07"
+      ],
+      "removed": []
+    }
+  ],
+  "trips": [
+    {
+      "id": "T1",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "A",
+          "arrival": "08:00:00",
+          "departure": "08:00:00"
+        },
+        {
+          "stop": "B",
+          "arrival": "08:20:00",
+          "departure": "08:22:00"
+        },
+        {
+          "stop": "C",
+          "arrival": "08:40:00",
+          "departure": "08:40:00"
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "A",
+          "arrival": "08:00:00",
+          "departure": "08:00:00"
+        },
+        {
+          "stop": "D",
+          "arrival": "08:30:00",
+          "departure": "08:30:00"
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "B",
+          "arrival": "23:50:00",
+          "departure": "23:50:00"
+        },
+        {
+          "stop": "C",
+          "arrival": "24:10:00",
+          "departure": "24:10:00"
+        },
+        {
+          "stop": "D",
+          "arrival": "24:30:00",
+          "departure": "24:30:00"
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "calendar": "daily",
+      "calls": [
+        {
+          "stop": "D",
+          "arrival": "24:00:00",
+          "departure": "24:00:00"
+        },
+        {
+          "stop": "A",
+          "arrival": "24:20:00",
+          "departure": "24:20:00"
+        }
+      ]
+    },
+    {
+      "id": "W1",
+      "calendar": "weekend",
+      "calls": [
+        {
+          "stop": "B",
+          "arrival": "09:00:00",
+          "departure": "09:00:00"
+        },
+        {
+          "stop": "C",
+          "arrival": "09:20:00",
+          "departure": "09:20:00"
+        }
+      ]
+    }
+  ],
+  "query": {
+    "date": "2026-01-02",
+    "origin": "A",
+    "destination": "D",
+    "depart": "07:00:00"
+  }
+}

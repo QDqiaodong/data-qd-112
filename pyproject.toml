@@ -10,5 +10,6 @@ dependencies = []
 [project.scripts]
 service-path = "service_path.cli:main"
 service-path-import = "service_path.import_cli:main"
+service-path-supply = "service_path.supply_cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]

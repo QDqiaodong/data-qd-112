@@ -73,3 +73,48 @@ CSV 双引号内的换行、逗号按标准处理；ID 保留原样（含前导�
 限制：`calendar.txt` 每个 `service_id` 只支持一行；不支持 `frequencies.txt`、
 `transfers.txt`、`shapes.txt` 或跨 trip 的贯通车辆语义；导入后按服务日静态查询，
 不处理 DST。
+
+## 站点发车供给集市 v1（service-path-supply）
+
+命令 `service-path-supply --source <v1快照> --start <YYYY-MM-DD> --end <YYYY-MM-DD>
+--database <SQLite路径>` 把快照展开成自然日发车事实与逐日逐站逐小时汇总。只使用标准库
+`sqlite3`，不联网；既有 `service-path`/`service-path-import` 接口与快照字段不变。
+
+输入语义：
+- 快照结构与 `timetable.parse` 完全一致（stops/calendars/trips/query），停运 trip 也做
+  完整校验；`query` 只校验，不限制输出日期。
+- `--start`/`--end` 为闭区间自然日，起点不得晚于终点，区间最多 3660 天。
+- 只有 trip 中非末站 call 的 `departure` 计一次发车；末站 call 不发车。
+- 服务日候选为 `start-1` 到 `end`，逐日按"常规闭区间 ∧ weekdays，或 added"且不在
+  removed 中判断启用；added/removed 可为区间外日期，removed 优先于 added 与常规服务。
+- 服务日 `s` 的 `HH:MM:SS`（00..47 小时）换算：自然日 `s + seconds//86400`，
+  日内秒 `seconds % 86400`。仅保留自然日落在 `[start, end]` 的发车；因此区间第一天会
+  包含前一服务日跨午夜的发车，区间内每个自然日都完整。
+
+表结构（数据库可已存在）：
+- `departures(service_day TEXT, trip_id TEXT, call_index INTEGER, natural_day TEXT,
+  stop_id TEXT, day_seconds INTEGER CHECK 0..86399)`，主键
+  `(service_day, trip_id, call_index)` 保证发车事实唯一；`call_index` 为 0 起的 call 序号。
+  附加索引 `(natural_day, stop_id, day_seconds)`。
+- `hourly_departures(natural_day TEXT, stop_id TEXT, hour INTEGER CHECK 0..23,
+  departure_count INTEGER, max_headway_seconds INTEGER CHECK 1..3600)`，主键
+  `(natural_day, stop_id, hour)`。
+- 每个快照站点在区间内每个自然日都有 24 行，无服务的要点 `departure_count=0`、
+  `max_headway_seconds=3600`。`departure_count` 统计事实行数，同秒多车分别计数。
+- `max_headway_seconds` 取该小时内**去重后的发车秒**加上整点 `hour*3600` 与
+  `(hour+1)*3600` 两个边界，对排序后相邻点作差取最大值；右边界整点的发车属于下一小时，
+  其所在小时用本小时边界计算。只有一班车时等于 3600。
+
+重跑与失败语义：
+- 每次运行先完整校验快照并在内存中算好事实与汇总，再打开数据库。
+- 单个事务内删除 `natural_day BETWEEN start AND end` 的两表分区，插入新事实与汇总，
+  最后提交；该区间以外的行一律不动。
+- 已有数据库若已有同名表但列/主键结构不符则失败，不修改数据库。
+- 校验失败、SQLite 错误或插入失败均回滚事务；运行前不存在的数据库在失败时不留下文件
+  （含 -journal/-wal/-shm）。成功退出 0 且在 stdout 打印统计 JSON；失败退出 2，错误写
+  stderr，旧库保持原样。
+- 数组顺序（stops/calendars/trips 及 weekdays/added/removed）不改变逻辑结果；输出表按
+  主键排序写出。
+
+限制：不处理 DST、实时延误、步行边或跨 trip 贯通车辆；单次汇总最多 500 万行；
+不对数据库做跨进程并发写入协调，也不承诺文件系统断电恢复。
