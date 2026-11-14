@@ -37,3 +37,15 @@ python3 -m venv .venv
 服务日23:50从A出发，经N1到B再换乘N2，24:15到D：到达87300秒、耗时1500秒、换乘1次。
 `timetable.py`解析日历与跨午夜时间，`route.py`执行连接扫描并保留逐段行程。
 不处理实时延误、步行边、DST或前后服务日混查；输出是静态数据查询结果。
+
+## --pareto 模式
+
+加 `--pareto` 输出最早到达与少换乘的全部非支配取舍（定义见 docs/contract.md）：
+
+```sh
+.venv/bin/service-path --source fixtures/timetable.json --output run/pareto.json --pareto
+```
+
+样例数据返回两个 journey：24:15到达（87300秒）、换乘1次的 N1→N2，与 24:30到达
+（88200秒）、换乘0次的直达 N3；同一（到达，换乘）组合只保留逐段（trip,index)
+字典序最小路径，数组按到达、换乘升序。不可达时 journeys 为空数组。

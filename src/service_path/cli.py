@@ -8,10 +8,12 @@ def main():
     p=argparse.ArgumentParser(description=DESCRIPTION)
     p.add_argument('--source',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--pareto',action='store_true',
+                   help='emit all non-dominated (arrival, transfers) journeys instead of the earliest-arrival one')
     a=p.parse_args()
     try:
         if a.source.resolve()==a.output.resolve(): raise ValueError('source and output must differ')
-        result=run(a.source);publish(a.output,result)
+        result=run(a.source,pareto_mode=a.pareto);publish(a.output,result)
     except (ValueError,OSError,KeyError,TypeError,OverflowError,RecursionError) as e:
         print(str(e),file=sys.stderr);return 2
     print(json.dumps(result,ensure_ascii=False,sort_keys=True,allow_nan=False));return 0
