@@ -1,0 +1,5 @@
+service_id,date,exception_type
+daily,20260103,2
+daily,20270102,1
+holiday,20260102,1
+holiday,20260103,1

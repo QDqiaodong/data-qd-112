@@ -1,0 +1,7 @@
+﻿stop_id,stop_name,stop_lat,stop_lon,zone_id
+A,"Alpha
+Central",0,0,Z1
+B,Bravo,0,0,Z1
+C,Charlie,0,0,Z1
+D,Delta,0,0,Z1
+007,Spare,0,0,Z2

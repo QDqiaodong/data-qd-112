@@ -23,6 +23,8 @@ python3 -m venv .venv
 
 ```sh
 .venv/bin/service-path --source fixtures/timetable.json --output run/report.json
+.venv/bin/service-path-import --source fixtures/gtfs/sample \
+    --query fixtures/gtfs/query.json --output run/snapshot.json
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
@@ -49,3 +51,33 @@ python3 -m venv .venv
 样例数据返回两个 journey：24:15到达（87300秒）、换乘1次的 N1→N2，与 24:30到达
 （88200秒）、换乘0次的直达 N3；同一（到达，换乘）组合只保留逐段（trip,index)
 字典序最小路径，数组按到达、换乘升序。不可达时 journeys 为空数组。
+
+## 离线 GTFS 导入（service-path-import）
+
+在仓库根目录把一个 GTFS 目录转成 `service-path` 可直接读取的 v1 快照：
+
+```sh
+.venv/bin/service-path-import --source fixtures/gtfs/sample \
+    --query fixtures/gtfs/query.json --output run/snapshot.json
+.venv/bin/service-path --source run/snapshot.json --output run/report.json
+.venv/bin/service-path --source run/snapshot.json --output run/pareto.json --pareto
+```
+
+- 读取 `stops.txt`、`trips.txt`、`stop_times.txt` 及 `calendar.txt`/`calendar_dates.txt`
+  （两者至少一个），按标准列名取值；额外列忽略，支持 UTF-8 BOM、引号内换行与前导零 ID。
+- `stop_sequence` 按整数升序排列且同一 trip 内唯一；`00:00:00`–`47:59:59` 保留服务日
+  时制，单数字小时规范成两位；空时刻、非法时刻、到达晚于离开、下一站到达不晚于前站
+  离开均拒绝。
+- 星期日历与 `calendar_dates.txt` 增删例外合并；只有例外的 service 输出为空
+  `weekdays` 与首个/末个例外日的跨度。同 service 同日重复的例外行拒绝。
+- 所有引用（trip→service、stop_times→trip/stop、query 站点）、日期与停运 trip 的结构
+  均校验。GTFS 没有换乘时间，导入后站点 `transfer_seconds` 统一为 0。
+- 输出数组按 ID/序列排序，GTFS 行顺序变化不改变输出字节。失败时错误信息定位到文件、
+  记录号、行号与关键 ID，退出 2 且不创建或覆盖旧输出（与 `service-path` 一样通过同目录
+  临时文件替换）。
+- `--query` 接受一个 query 对象，也接受含 `query` 字段的现有快照；只复用其中的
+  date/origin/destination/depart，不改动原文件。
+
+已知限制：`calendar.txt` 每个 `service_id` 只允许一行（v1 快照只有一个星期掩码与闭区间）；
+GTFS 中同一 trip 的 `stop_sequence` 重复、或需要额外 `frequencies.txt`/`transfers.txt`
+的场景不支持，遇到时按校验失败处理。
